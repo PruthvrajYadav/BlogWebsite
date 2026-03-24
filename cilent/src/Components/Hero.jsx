@@ -1,7 +1,7 @@
-import React, { useRef } from 'react';
+import { useRef } from 'react';
 import { gsap } from 'gsap';
 import { useGSAP } from '@gsap/react';
-import { ArrowUpRight, Minus } from 'lucide-react';
+import { ArrowUpRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const Hero = () => {
@@ -15,7 +15,6 @@ const Hero = () => {
 
         tl.from(subTitleRef.current, {
             y: 20,
-            opacity: 0,
             duration: 1.2,
             delay: 0.3
         })

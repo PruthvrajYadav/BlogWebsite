@@ -13,13 +13,21 @@ exports.getCategories = async (req, res) => {
 
 exports.getBlogs = async (req, res) => {
     try {
-        const { search, category } = req.query;
+        const { search, category, status } = req.query;
         let query = {};
+
+        // Regular users should only see published blogs by default
+        if (status) {
+            query.status = status;
+        } else {
+            query.status = 'Published';
+        }
 
         if (search) {
             query.$or = [
                 { title: { $regex: search, $options: "i" } },
-                { excerpt: { $regex: search, $options: "i" } }
+                { excerpt: { $regex: search, $options: "i" } },
+                { tags: { $in: [new RegExp(search, "i")] } }
             ];
         }
         if (category && category !== "All") {
@@ -115,8 +123,32 @@ exports.addComment = async (req, res) => {
 
 exports.getComments = async (req, res) => {
     try {
-        const comments = await Comment.find({ blog: req.params.id }).populate("user", "name").sort("-createdAt");
+        const comments = await Comment.find({ blog: req.params.id })
+            .populate("user", "name profilePic")
+            .populate("replies.user", "name profilePic")
+            .sort("-createdAt");
         res.json({ errors: false, data: comments });
+    } catch (error) {
+        res.status(500).json({ errors: true, message: error.message });
+    }
+};
+
+exports.replyToComment = async (req, res) => {
+    try {
+        const { text } = req.body;
+        const comment = await Comment.findById(req.params.commentId);
+        if (!comment) return res.status(404).json({ errors: true, message: "Comment not found" });
+
+        comment.replies.push({
+            text,
+            user: req.user._id
+        });
+
+        await comment.save();
+        const updatedComment = await Comment.findById(comment._id)
+            .populate("user", "name profilePic")
+            .populate("replies.user", "name profilePic");
+        res.json({ errors: false, data: updatedComment });
     } catch (error) {
         res.status(500).json({ errors: true, message: error.message });
     }
@@ -134,8 +166,9 @@ exports.getBlogById = async (req, res) => {
 
 exports.createBlog = async (req, res) => {
     try {
+        const { title, content, excerpt, image, category, status, tags } = req.body;
         const blogData = {
-            ...req.body,
+            title, content, excerpt, image, category, status, tags,
             userId: req.user._id
         };
         const blog = await Blog.create(blogData);

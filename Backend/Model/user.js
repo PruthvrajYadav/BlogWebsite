@@ -36,6 +36,15 @@ const userSchema = mongoose.Schema({
     isBlocked: {
         type: Boolean,
         default: false
+    },
+    refreshToken: {
+        type: String,
+        default: ""
+    },
+    socialLinks: {
+        twitter: { type: String, default: "" },
+        linkedin: { type: String, default: "" },
+        github: { type: String, default: "" }
     }
 })
 

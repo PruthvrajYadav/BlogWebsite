@@ -4,7 +4,7 @@ const blogController = require('../Controller/blogController');
 
 const { verifyToken } = require('../middleware/authMiddleware');
 
-const { validateBlog } = require('../middleware/validator');
+const { validateBlog, validateComment } = require('../middleware/validator');
 
 router.get('/categories', blogController.getCategories);
 
@@ -17,6 +17,7 @@ router.delete('/:id', verifyToken, blogController.deleteBlog);
 // Interactions
 router.post('/:id/like', verifyToken, blogController.likeBlog);
 router.get('/:id/comments', blogController.getComments);
-router.post('/:id/comments', verifyToken, blogController.addComment);
+router.post('/:id/comments', verifyToken, validateComment, blogController.addComment);
+router.post('/comments/:commentId/replies', verifyToken, validateComment, blogController.replyToComment);
 
 module.exports = router;

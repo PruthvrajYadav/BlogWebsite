@@ -1,4 +1,5 @@
-import React, { useRef } from 'react';
+import { useRef } from 'react';
+/* eslint-disable react/prop-types */
 import { gsap } from 'gsap';
 import { useGSAP } from '@gsap/react';
 

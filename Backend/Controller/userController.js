@@ -2,6 +2,14 @@ const User = require("../Model/user")
 const bcrypt = require('bcryptjs')
 const jwt = require("jsonwebtoken");
 
+const generateToken = (_id) => {
+    return jwt.sign({ _id }, process.env.SEC, { expiresIn: '15m' });
+};
+
+const generateRefreshToken = (_id) => {
+    return jwt.sign({ _id }, process.env.SEC, { expiresIn: '7d' });
+};
+
 exports.getUser = async (req, res) => {
     try {
         const data = await User.find()
@@ -65,17 +73,51 @@ exports.login = async (req, res) => {
         const comparePassword = await bcrypt.compare(req.body.password, UserExist.password);
         if (!comparePassword) return res.status(500).json({ errors: true, message: "email or password is invalid" });
 
-        // Debug logs to check for undefined values
-        console.log("JWT Secret:", process.env.SEC);
-        console.log("User ID:", UserExist._id);
-
         if (!process.env.SEC) throw new Error("JWT Secret is undefined");
-        if (!UserExist._id) throw new Error("User ID is undefined");
 
-        const token = await jwt.sign({ _id: UserExist._id }, process.env.SEC);
-        return res.json({ errors: false, data: { user: UserExist, token: token } });
+        const token = generateToken(UserExist._id);
+        const refreshToken = generateRefreshToken(UserExist._id);
+
+        // Save refresh token to user
+        UserExist.refreshToken = refreshToken;
+        await UserExist.save();
+
+        return res.json({
+            errors: false,
+            data: {
+                user: {
+                    _id: UserExist._id,
+                    name: UserExist.name,
+                    email: UserExist.email,
+                    isAdmin: UserExist.isAdmin,
+                    bio: UserExist.bio,
+                    profilePic: UserExist.profilePic
+                },
+                token: token,
+                refreshToken: refreshToken
+            }
+        });
     } catch (error) {
         return res.status(500).json({ errors: true, message: error.message });
+    }
+};
+
+exports.refreshToken = async (req, res) => {
+    const { refreshToken } = req.body;
+    if (!refreshToken) return res.status(401).json({ errors: true, message: "Refresh Token is required" });
+
+    try {
+        const payload = jwt.verify(refreshToken, process.env.SEC);
+        const user = await User.findById(payload._id);
+
+        if (!user || user.refreshToken !== refreshToken) {
+            return res.status(403).json({ errors: true, message: "Invalid Refresh Token" });
+        }
+
+        const newToken = generateToken(user._id);
+        return res.json({ errors: false, token: newToken });
+    } catch (error) {
+        return res.status(403).json({ errors: true, message: "Invalid or Expired Refresh Token" });
     }
 };
 

@@ -1,5 +1,5 @@
-import React, { useRef } from 'react';
-import { Mail, MessageSquare, Send, MapPin, Phone } from 'lucide-react';
+import { useRef } from 'react';
+import { Mail, Send, MapPin, Phone } from 'lucide-react';
 import { gsap } from 'gsap';
 import { useGSAP } from '@gsap/react';
 
@@ -39,7 +39,7 @@ const Contact = () => {
         <main ref={containerRef} className="pt-32 pb-20 px-4 max-w-7xl mx-auto overflow-hidden">
             <div ref={headerRef} className="text-center mb-16">
                 <h1 className="text-5xl md:text-6xl font-black mb-6 tracking-tight">Get in <span className="gradient-text">Touch</span></h1>
-                <p className="text-gray-400 max-w-2xl mx-auto text-lg font-medium">Have a question or want to collaborate? We'd love to hear from you.</p>
+                <p className="text-gray-400 max-w-2xl mx-auto text-lg font-medium">Have a question or want to collaborate? We&apos;d love to hear from you.</p>
             </div>
 
             <div className="grid lg:grid-cols-2 gap-12">

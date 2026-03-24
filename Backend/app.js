@@ -2,6 +2,8 @@ const mongoose = require("mongoose")
 const express = require("express")
 const path = require("path")
 const multer = require("multer")
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
 require("dotenv").config()
 const BlogRoute = require("./Routes/blogRoute")
 const UserRoute = require("./Routes/userRoute")
@@ -16,7 +18,10 @@ const mongoSanitize = require('express-mongo-sanitize');
 const rateLimit = require('express-rate-limit');
 const { errorHandler } = require('./middleware/errorMiddleware');
 
-app.use(helmet());
+app.use(helmet({
+    crossOriginResourcePolicy: false,
+    crossOriginEmbedderPolicy: false,
+}));
 app.use(mongoSanitize());
 
 const limiter = rateLimit({
@@ -25,20 +30,55 @@ const limiter = rateLimit({
 });
 app.use('/api/', limiter);
 
+// Stricter limiter for Auth
+const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 10, // 10 attempts per 15 mins
+    message: { errors: true, message: "Too many attempts from this IP, please try again after 15 minutes" }
+});
+app.use('/api/user/login', authLimiter);
+app.use('/api/user/register', authLimiter);
+
 app.use(cors())
 app.use(express.json())
 app.use("/uploads", express.static(path.join(__dirname, "uploads")))
 
-// Multer Setup
-const storage = multer.diskStorage({
+// Cloudinary Configuration
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
+// Multer & Storage Setup
+const localStore = multer.diskStorage({
     destination: (req, file, cb) => cb(null, "uploads/"),
     filename: (req, file, cb) => cb(null, Date.now() + path.extname(file.originalname))
 });
-const upload = multer({ storage });
+
+const cloudStore = new CloudinaryStorage({
+    cloudinary: cloudinary,
+    params: {
+        folder: 'blog-uploads',
+        allowed_formats: ['jpg', 'png', 'jpeg', 'webp']
+    }
+});
+
+// Use Cloudinary if credentials exist, otherwise local
+const useCloud = process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_CLOUD_NAME !== 'your_cloud_name';
+const upload = multer({ storage: useCloud ? cloudStore : localStore });
 
 app.post("/api/upload", upload.single("image"), (req, res) => {
     try {
-        res.json({ errors: false, imageUrl: `http://localhost:5000/uploads/${req.file.filename}` });
+        if (!req.file) return res.status(400).json({ errors: true, message: "No file uploaded" });
+        
+        let imageUrl = req.file.path;
+        if (!useCloud) {
+            const host = req.get('host');
+            imageUrl = `http://${host}/uploads/${req.file.filename}`;
+        }
+        
+        res.json({ errors: false, imageUrl });
     } catch (error) {
         res.status(500).json({ errors: true, message: error.message });
     }
@@ -74,6 +114,10 @@ app.use((req, res) => {
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
+}).on('error', (err) => {
+    if (err.code === 'EADDRINUSE') {
+        console.error(`\n!!! Port ${PORT} busy. Please close other terminals !!!\n`);
+    }
 })
 
 async function DB() {

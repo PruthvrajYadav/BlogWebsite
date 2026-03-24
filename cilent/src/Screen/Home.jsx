@@ -1,22 +1,28 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Hero from '../Components/Hero';
 import About from '../Components/About';
 import Services from '../Components/Services';
-import axios from 'axios';
-import BlogCard from '../Components/BlogCard';
-import { ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { ArrowRight } from 'lucide-react';
+import { BlogCardSkeleton } from '../Component/Skeleton';
+import api from '../utils/api';
+import BlogCard from '../Components/BlogCard';
 
 const Home = () => {
     const [recentBlogs, setRecentBlogs] = useState([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchRecent = async () => {
             try {
-                const res = await axios.get('http://localhost:5000/api/blog?limit=3');
-                setRecentBlogs(res.data.data);
+                const res = await api.get(`/blog?limit=3`);
+                if (res.data.data && res.data.data.length > 0) {
+                    setRecentBlogs(res.data.data);
+                }
             } catch (error) {
                 console.error(error);
+            } finally {
+                setLoading(false);
             }
         };
         fetchRecent();
@@ -37,12 +43,14 @@ const Home = () => {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {recentBlogs.length > 0 ? (
+                    {loading ? (
+                        [1, 2, 3].map(i => <BlogCardSkeleton key={i} />)
+                    ) : recentBlogs.length > 0 ? (
                         recentBlogs.map(blog => (
                             <BlogCard key={blog._id} blog={blog} />
                         ))
                     ) : (
-                        <div className="col-span-full text-center py-10 glass rounded-3xl text-gray-400">
+                        <div className="col-span-full text-center py-20 glass rounded-[2rem] text-gray-500 font-medium">
                             No stories published yet. Stay tuned!
                         </div>
                     )}

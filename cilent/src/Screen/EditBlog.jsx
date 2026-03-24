@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import { useSelector } from 'react-redux';
+import { useNavigate, useParams } from 'react-router-dom';
+import { Upload, Loader2, Image as ImageIcon } from 'lucide-react';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
-import { useSelector } from 'react-redux';
-import axios from 'axios';
-import { useNavigate, useParams } from 'react-router-dom';
-import { Loader2, Upload, Image as ImageIcon } from 'lucide-react';
+import { getSafeImageUrl } from '../config';
+import api from '../utils/api';
 
 const EditBlog = () => {
     const { id } = useParams();
@@ -12,6 +13,8 @@ const EditBlog = () => {
     const [content, setContent] = useState('');
     const [image, setImage] = useState('');
     const [category, setCategory] = useState('');
+    const [status, setStatus] = useState('Published');
+    const [tags, setTags] = useState('');
     const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(true);
     const [uploading, setUploading] = useState(false);
@@ -22,14 +25,16 @@ const EditBlog = () => {
         const fetchData = async () => {
             try {
                 const [blogRes, catRes] = await Promise.all([
-                    axios.get(`http://localhost:5000/api/blog/${id}`),
-                    axios.get('http://localhost:5000/api/blog/categories')
+                    api.get(`/blog/${id}`),
+                    api.get(`/blog/categories`)
                 ]);
                 const blog = blogRes.data.data;
                 setTitle(blog.title);
                 setContent(blog.content);
                 setImage(blog.image);
                 setCategory(blog.category);
+                setStatus(blog.status || 'Published');
+                setTags(blog.tags?.join(', ') || '');
                 setCategories(catRes.data.data);
             } catch (error) {
                 console.error(error);
@@ -38,14 +43,12 @@ const EditBlog = () => {
             }
         };
         fetchData();
-    }, [id, token]);
+    }, [id]);
 
     const handleSubmit = async () => {
         try {
-            await axios.put(`http://localhost:5000/api/blog/${id}`,
-                { title, content, category, image },
-                { headers: { 'auth-token': token } }
-            );
+            const tagsArray = tags.split(',').map(tag => tag.trim()).filter(tag => tag !== '');
+            await api.put(`/blog/${id}`, { title, content, category, image, status, tags: tagsArray });
             navigate('/admin');
         } catch (error) {
             console.error(error);
@@ -62,7 +65,7 @@ const EditBlog = () => {
 
         try {
             setUploading(true);
-            const res = await axios.post('http://localhost:5000/api/upload', formData, {
+            const res = await api.post(`/upload`, formData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
             setImage(res.data.imageUrl);
@@ -85,8 +88,8 @@ const EditBlog = () => {
             <div className="max-w-5xl mx-auto glass p-10 rounded-[2rem]">
                 <h1 className="text-4xl font-black mb-10 tracking-tight">Edit <span className="gradient-text">Story</span></h1>
                 <div className="space-y-8">
-                    <div className="grid md:grid-cols-2 gap-8">
-                        <div>
+                    <div className="grid md:grid-cols-3 gap-8">
+                        <div className="md:col-span-2">
                             <label className="block text-xs font-bold uppercase tracking-widest text-gray-500 mb-3">Blog Title</label>
                             <input
                                 value={title}
@@ -111,13 +114,43 @@ const EditBlog = () => {
                         </div>
                     </div>
 
+                    <div className="grid md:grid-cols-2 gap-8">
+                        <div>
+                            <label className="block text-xs font-bold uppercase tracking-widest text-gray-500 mb-3">Visibility Status</label>
+                            <div className="flex bg-white/5 rounded-xl p-1 p-2 gap-2">
+                                <button
+                                    onClick={() => setStatus('Published')}
+                                    className={`flex-1 py-2 rounded-lg font-bold transition-all ${status === 'Published' ? 'bg-brand-primary text-white shadow-lg' : 'text-gray-500 hover:text-white'}`}
+                                >
+                                    Published
+                                </button>
+                                <button
+                                    onClick={() => setStatus('Draft')}
+                                    className={`flex-1 py-2 rounded-lg font-bold transition-all ${status === 'Draft' ? 'bg-indigo-500 text-white shadow-lg' : 'text-gray-500 hover:text-white'}`}
+                                >
+                                    Draft
+                                </button>
+                            </div>
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold uppercase tracking-widest text-gray-500 mb-3">Tags (comma separated)</label>
+                            <input
+                                value={tags}
+                                onChange={(e) => setTags(e.target.value)}
+                                type="text"
+                                placeholder="React, Node, UX..."
+                                className="w-full glass p-4 rounded-xl outline-none focus:ring-2 ring-brand-primary/20 transition-all font-medium"
+                            />
+                        </div>
+                    </div>
+
                     <div>
                         <label className="block text-xs font-bold uppercase tracking-widest text-gray-500 mb-3">Feature Image</label>
                         <div className="grid md:grid-cols-2 gap-6">
                             <div className="relative glass p-4 rounded-xl flex items-center justify-center border-2 border-dashed border-white/10 hover:border-brand-primary/50 transition-all group overflow-hidden h-40">
                                 {image ? (
                                     <>
-                                        <img src={image} alt="Preview" className="w-full h-full object-cover rounded-lg opacity-50 group-hover:opacity-100 transition-opacity" />
+                                        <img src={getSafeImageUrl(image)} alt="Preview" className="w-full h-full object-cover rounded-lg opacity-50 group-hover:opacity-100 transition-opacity" />
                                         <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20">
                                             <button onClick={() => setImage('')} className="bg-red-500 text-white p-2 rounded-lg shadow-lg">Change Image</button>
                                         </div>

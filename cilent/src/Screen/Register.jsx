@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
+import { useState } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { useNavigate, Link } from 'react-router-dom';
+import { User, Mail, Lock, Loader2, Sparkles } from 'lucide-react';
 import { loginStart, loginSuccess, loginFailure } from '../Slice/userSlice';
-import axios from 'axios';
-import { Mail, Lock, User, Loader2, Sparkles } from 'lucide-react';
+import api from '../utils/api';
 
 const Register = () => {
     const [name, setName] = useState('');
@@ -17,10 +17,10 @@ const Register = () => {
         e.preventDefault();
         dispatch(loginStart());
         try {
-            const res = await axios.post('http://localhost:5000/api/user', { name, email, password });
+            await api.post(`/user`, { name, email, password });
             // Automatic login after registration
-            const loginRes = await axios.post('http://localhost:5000/api/user/login', { email, password });
-            dispatch(loginSuccess(loginRes.data.data));
+            const loginRes = await api.post(`/user/login`, { email, password });
+            dispatch(loginSuccess(loginRes.data.data)); // Now includes refreshToken
             navigate('/');
         } catch (err) {
             dispatch(loginFailure(err.response?.data?.message || "Registration failed"));
@@ -28,8 +28,8 @@ const Register = () => {
     };
 
     return (
-        <main className="pt-20 min-h-screen flex items-center justify-center p-4">
-            <div className="max-w-md w-full glass p-10 rounded-[2.5rem] shadow-2xl relative overflow-hidden">
+        <main className="pt-20 min-h-screen flex items-center justify-center p-4 auth-bg">
+            <div className="max-w-md w-full glass p-10 rounded-[2.5rem] shadow-2xl relative overflow-hidden bg-[#0d0d0d]/80 backdrop-blur-3xl border-white/5">
                 <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-brand-primary to-brand-secondary"></div>
 
                 <div className="text-center mb-10">

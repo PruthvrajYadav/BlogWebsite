@@ -1,16 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import { useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import { Upload, Loader2, Image as ImageIcon } from 'lucide-react';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
-import { useSelector } from 'react-redux';
-import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
-import { Upload, Image as ImageIcon, Loader2 } from 'lucide-react';
+import { getSafeImageUrl } from '../config';
+import api from '../utils/api';
 
 const AddBlog = () => {
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
     const [image, setImage] = useState('');
     const [category, setCategory] = useState('');
+    const [status, setStatus] = useState('Published');
+    const [tags, setTags] = useState('');
     const [categories, setCategories] = useState([]);
     const [uploading, setUploading] = useState(false);
     const { data: user, token } = useSelector(state => state.user);
@@ -19,7 +22,7 @@ const AddBlog = () => {
     useEffect(() => {
         const fetchCategories = async () => {
             try {
-                const res = await axios.get('http://localhost:5000/api/blog/categories');
+                const res = await api.get(`/blog/categories`);
                 setCategories(res.data.data);
                 if (res.data.data.length > 0) setCategory(res.data.data[0].name);
             } catch (error) {
@@ -27,14 +30,12 @@ const AddBlog = () => {
             }
         };
         fetchCategories();
-    }, [token]);
+    }, []);
 
     const handleSubmit = async () => {
         try {
-            await axios.post('http://localhost:5000/api/blog',
-                { title, content, category, image, userId: user._id },
-                { headers: { 'auth-token': token } }
-            );
+            const tagsArray = tags.split(',').map(tag => tag.trim()).filter(tag => tag !== '');
+            await api.post(`/blog`, { title, content, category, image, status, tags: tagsArray, userId: user._id });
             navigate('/blog');
         } catch (error) {
             console.error(error);
@@ -50,7 +51,7 @@ const AddBlog = () => {
 
         try {
             setUploading(true);
-            const res = await axios.post('http://localhost:5000/api/upload', formData, {
+            const res = await api.post(`/upload`, formData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
             setImage(res.data.imageUrl);
@@ -67,15 +68,15 @@ const AddBlog = () => {
             <div className="max-w-5xl mx-auto glass p-10 rounded-[2rem]">
                 <h1 className="text-4xl font-black mb-10 tracking-tight">Compose <span className="gradient-text">Story</span></h1>
                 <div className="space-y-8">
-                    <div className="grid md:grid-cols-2 gap-8">
-                        <div>
+                    <div className="grid md:grid-cols-3 gap-8">
+                        <div className="md:col-span-2">
                             <label className="block text-xs font-bold uppercase tracking-widest text-gray-500 mb-3">Blog Title</label>
                             <input
                                 value={title}
                                 onChange={(e) => setTitle(e.target.value)}
                                 type="text"
                                 placeholder="The future of Web..."
-                                className="w-full glass p-4 rounded-xl outline-none focus:ring-2 ring-brand-primary/20 transition-all"
+                                className="w-full glass p-4 rounded-xl outline-none focus:ring-2 ring-brand-primary/20 transition-all font-medium"
                             />
                         </div>
                         <div>
@@ -83,7 +84,7 @@ const AddBlog = () => {
                             <select
                                 value={category}
                                 onChange={(e) => setCategory(e.target.value)}
-                                className="w-full glass p-4 rounded-xl outline-none"
+                                className="w-full glass p-4 rounded-xl outline-none font-medium"
                             >
                                 <option value="">Select Category</option>
                                 {categories.map(cat => (
@@ -93,13 +94,43 @@ const AddBlog = () => {
                         </div>
                     </div>
 
+                    <div className="grid md:grid-cols-2 gap-8">
+                        <div>
+                            <label className="block text-xs font-bold uppercase tracking-widest text-gray-500 mb-3">Visibility Status</label>
+                            <div className="flex bg-white/5 rounded-xl p-1 p-2 gap-2">
+                                <button
+                                    onClick={() => setStatus('Published')}
+                                    className={`flex-1 py-2 rounded-lg font-bold transition-all ${status === 'Published' ? 'bg-brand-primary text-white shadow-lg' : 'text-gray-500 hover:text-white'}`}
+                                >
+                                    Published
+                                </button>
+                                <button
+                                    onClick={() => setStatus('Draft')}
+                                    className={`flex-1 py-2 rounded-lg font-bold transition-all ${status === 'Draft' ? 'bg-indigo-500 text-white shadow-lg' : 'text-gray-500 hover:text-white'}`}
+                                >
+                                    Draft
+                                </button>
+                            </div>
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold uppercase tracking-widest text-gray-500 mb-3">Tags (comma separated)</label>
+                            <input
+                                value={tags}
+                                onChange={(e) => setTags(e.target.value)}
+                                type="text"
+                                placeholder="React, Node, UX..."
+                                className="w-full glass p-4 rounded-xl outline-none focus:ring-2 ring-brand-primary/20 transition-all font-medium"
+                            />
+                        </div>
+                    </div>
+
                     <div>
                         <label className="block text-xs font-bold uppercase tracking-widest text-gray-500 mb-3">Feature Image</label>
                         <div className="grid md:grid-cols-2 gap-6">
                             <div className="relative glass p-4 rounded-xl flex items-center justify-center border-2 border-dashed border-white/10 hover:border-brand-primary/50 transition-all group overflow-hidden h-40">
                                 {image ? (
                                     <>
-                                        <img src={image} alt="Preview" className="w-full h-full object-cover rounded-lg opacity-50 group-hover:opacity-100 transition-opacity" />
+                                        <img src={getSafeImageUrl(image)} alt="Preview" className="w-full h-full object-cover rounded-lg opacity-50 group-hover:opacity-100 transition-opacity" />
                                         <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20">
                                             <button onClick={() => setImage('')} className="bg-red-500 text-white p-2 rounded-lg shadow-lg">Change Image</button>
                                         </div>

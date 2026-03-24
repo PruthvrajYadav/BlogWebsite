@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import { useRef } from 'react';
 import { gsap } from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -7,6 +7,7 @@ import { Zap, Command, Shield, BarChart3, Feather, MessageSquare } from 'lucide-
 gsap.registerPlugin(ScrollTrigger);
 
 const Services = () => {
+    console.log("Services component rendering...");
     const container = useRef();
     const cardsRef = useRef([]);
 

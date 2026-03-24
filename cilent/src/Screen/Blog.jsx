@@ -1,10 +1,11 @@
-import React, { useEffect, useState, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import BlogCard from '../Components/BlogCard';
 import Pagination from '../Components/Pagination';
 import { Search, Filter, Loader2 } from 'lucide-react';
 import { gsap } from 'gsap';
 import { useGSAP } from '@gsap/react';
+import { API_BASE_URL } from '../config';
 
 const Blog = () => {
     const [blogs, setBlogs] = useState([]);
@@ -42,7 +43,7 @@ const Blog = () => {
 
     const fetchCategories = async () => {
         try {
-            const res = await axios.get('http://localhost:5000/api/blog/categories');
+            const res = await axios.get(`${API_BASE_URL}/blog/categories`);
             setCategories(['All', ...res.data.data.map(cat => cat.name)]);
         } catch (error) {
             console.error(error);
@@ -52,7 +53,7 @@ const Blog = () => {
     const fetchBlogs = async () => {
         try {
             setLoading(true);
-            const res = await axios.get(`http://localhost:5000/api/blog?search=${search}&category=${category}&page=${page}&limit=6`);
+            const res = await axios.get(`${API_BASE_URL}/blog?search=${search}&category=${category}&page=${page}&limit=6`);
             setBlogs(res.data.data || []);
             setPagination(res.data.pagination || { totalPages: 1 });
 

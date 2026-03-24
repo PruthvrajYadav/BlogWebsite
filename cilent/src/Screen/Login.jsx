@@ -1,9 +1,9 @@
-import React, { useState, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
-import { loginStart, loginSuccess, loginFailure } from '../Slice/userSlice';
-import axios from 'axios';
+import { useState, useRef } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { useNavigate, Link } from 'react-router-dom';
 import { Mail, Lock, Loader2, ArrowRight } from 'lucide-react';
+import { loginStart, loginSuccess, loginFailure } from '../Slice/userSlice';
+import api from '../utils/api';
 import { gsap } from 'gsap';
 import { useGSAP } from '@gsap/react';
 
@@ -29,8 +29,8 @@ const Login = () => {
         e.preventDefault();
         dispatch(loginStart());
         try {
-            const res = await axios.post('http://localhost:5000/api/user/login', { email, password });
-            dispatch(loginSuccess(res.data.data)); // Assumes backend returns { user, token }
+            const res = await api.post(`/user/login`, { email, password });
+            dispatch(loginSuccess(res.data.data)); // Assumes backend returns { user, token, refreshToken }
             navigate('/');
         } catch (err) {
             dispatch(loginFailure(err.response?.data?.message || "Login failed"));
@@ -38,8 +38,8 @@ const Login = () => {
     };
 
     return (
-        <main className="pt-20 min-h-screen flex items-center justify-center p-4">
-            <div ref={cardRef} className="max-w-md w-full glass p-10 rounded-[2.5rem] shadow-2xl relative overflow-hidden">
+        <main className="pt-20 min-h-screen flex items-center justify-center p-4 auth-bg">
+            <div ref={cardRef} className="max-w-md w-full glass p-10 rounded-[2.5rem] shadow-2xl relative overflow-hidden bg-[#0d0d0d]/80 backdrop-blur-3xl border-white/5">
                 <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-brand-primary to-brand-secondary"></div>
 
                 <div className="text-center mb-10">

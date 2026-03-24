@@ -1,13 +1,14 @@
-import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
-import axios from 'axios';
-import { useDispatch, useSelector } from 'react-redux';
-import { Heart, MessageCircle, Share2, Calendar, User, ArrowLeft, Send, Bookmark, Download } from 'lucide-react';
-import { updateUserInfo } from '../Slice/userSlice';
+import { useEffect, useState } from 'react';
+import { useParams, Link } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
 import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import { ArrowLeft, Calendar, Heart, Bookmark, Share2, Download, MessageCircle, Send } from 'lucide-react';
 import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
+import { jsPDF } from 'jspdf';
+import { updateUserInfo } from '../Slice/userSlice';
+import { getSafeImageUrl } from '../config';
+import api from '../utils/api';
+import { SingleBlogSkeleton } from '../Component/Skeleton';
 
 const SingleBlog = () => {
     const { id } = useParams();
@@ -16,14 +17,28 @@ const SingleBlog = () => {
     const [newComment, setNewComment] = useState('');
     const [isLiked, setIsLiked] = useState(false);
     const [isSaved, setIsSaved] = useState(false);
+    const [scrollProgress, setScrollProgress] = useState(0);
+    const [replyTo, setReplyTo] = useState(null);
+    const [replyText, setReplyText] = useState('');
+    const [loading, setLoading] = useState(true);
     const { data: user, token } = useSelector(state => state.user);
     const dispatch = useDispatch();
+
+    useEffect(() => {
+        const handleScroll = () => {
+            const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
+            const progress = (window.scrollY / totalHeight) * 100;
+            setScrollProgress(progress);
+        };
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
 
     const fetchData = async () => {
         try {
             const [blogRes, commRes] = await Promise.all([
-                axios.get(`http://localhost:5000/api/blog/${id}`),
-                axios.get(`http://localhost:5000/api/blog/${id}/comments`)
+                api.get(`/blog/${id}`),
+                api.get(`/blog/${id}/comments`)
             ]);
             setBlog(blogRes.data.data);
             setComments(commRes.data.data);
@@ -34,6 +49,8 @@ const SingleBlog = () => {
             }
         } catch (error) {
             console.error(error);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -44,7 +61,7 @@ const SingleBlog = () => {
     const handleLike = async () => {
         if (!token) return alert("Please login to like");
         try {
-            await axios.post(`http://localhost:5000/api/blog/${id}/like`, {}, { headers: { 'auth-token': token } });
+            await api.post(`/blog/${id}/like`);
             setIsLiked(!isLiked);
             setBlog(prev => ({
                 ...prev,
@@ -58,7 +75,7 @@ const SingleBlog = () => {
     const handleSave = async () => {
         if (!token) return alert("Please login to save stories");
         try {
-            const res = await axios.put(`http://localhost:5000/api/user/save/${id}`, {}, { headers: { 'auth-token': token } });
+            const res = await api.put(`/user/save/${id}`);
             dispatch(updateUserInfo(res.data.data));
             setIsSaved(!isSaved);
         } catch (error) {
@@ -127,7 +144,7 @@ const SingleBlog = () => {
         e.preventDefault();
         if (!token) return alert("Please login to comment");
         try {
-            const res = await axios.post(`http://localhost:5000/api/blog/${id}/comments`, { text: newComment }, { headers: { 'auth-token': token } });
+            const res = await api.post(`/blog/${id}/comments`, { text: newComment });
             setComments([res.data.data, ...comments]);
             setNewComment('');
         } catch (error) {
@@ -135,129 +152,197 @@ const SingleBlog = () => {
         }
     };
 
+    const handleReply = async (commentId) => {
+        if (!token) return alert("Please login to reply");
+        if (!replyText.trim()) return;
+        try {
+            const res = await api.post(`/blog/comments/${commentId}/replies`, { text: replyText });
+            setComments(comments.map(c => c._id === commentId ? res.data.data : c));
+            setReplyText('');
+            setReplyTo(null);
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+    if (loading) return <SingleBlogSkeleton />;
     if (!blog) return <div className="pt-40 text-center text-gray-400">Loading story...</div>;
 
     return (
-        <main className="pt-32 pb-20 px-4 max-w-4xl mx-auto">
-            <Link to="/blog" className="flex items-center space-x-2 text-gray-500 hover:text-white transition-colors mb-10 group">
-                <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
-                <span className="font-bold">Back to Feed</span>
-            </Link>
-
-            <article id="blog-article" className="bg-black">
-                {blog.image && (
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        className="mb-12 h-[450px] w-full rounded-[2.5rem] overflow-hidden shadow-2xl border border-white/5"
-                    >
-                        <img
-                            src={blog.image}
-                            alt={blog.title}
-                            className="w-full h-full object-cover"
-                        />
-                    </motion.div>
-                )}
+        <main className="pt-20 min-h-screen pb-20 relative">
+            {/* Reading Progress Bar */}
+            <div className="fixed top-20 left-0 w-full h-1 z-[60] bg-white/5">
                 <motion.div
-                    initial={{ opacity: 0, y: 30 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="mb-10"
-                >
-                    <span className="px-4 py-1.5 rounded-full bg-brand-primary/10 border border-brand-primary/20 text-xs font-bold text-brand-primary uppercase tracking-widest mb-6 inline-block">
-                        {blog.category}
-                    </span>
-                    <h1 className="text-4xl md:text-6xl font-black mb-8 leading-[1.1] tracking-tighter">
-                        {blog.title}
-                    </h1>
-
-                    <div className="flex items-center justify-between border-y border-white/5 py-6">
-                        <div className="flex items-center space-x-4">
-                            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-brand-primary to-brand-secondary flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-indigo-500/20">
-                                {blog.userId?.name[0]}
-                            </div>
-                            <div>
-                                <p className="font-bold text-lg">{blog.userId?.name}</p>
-                                <div className="flex items-center space-x-3 text-sm text-gray-500">
-                                    <div className="flex items-center space-x-1">
-                                        <Calendar size={14} />
-                                        <span>{new Date(blog.createdAt).toLocaleDateString()}</span>
-                                    </div>
-                                    <span>•</span>
-                                    <span>{Math.ceil((blog.content?.split(' ').length || 0) / 200)} min read</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="flex items-center space-x-4">
-                            <button
-                                onClick={handleLike}
-                                className={`flex items-center space-x-2 px-6 py-2.5 rounded-2xl transition-all font-bold ${isLiked ? 'bg-red-500/10 text-red-500 border border-red-500/20' : 'glass text-gray-400 hover:text-white'}`}
-                            >
-                                <Heart size={18} fill={isLiked ? "currentColor" : "none"} />
-                                <span>{blog.likes?.length || 0}</span>
-                            </button>
-                            <button
-                                onClick={handleSave}
-                                className={`p-3 rounded-2xl transition-all ${isSaved ? 'bg-brand-primary/10 text-brand-primary border border-brand-primary/20' : 'glass text-gray-400 hover:text-white'}`}
-                            >
-                                <Bookmark size={20} fill={isSaved ? "currentColor" : "none"} />
-                            </button>
-                            <button
-                                onClick={handleShare}
-                                className="p-3 rounded-2xl glass text-gray-400 hover:text-white transition-all"
-                            >
-                                <Share2 size={20} />
-                            </button>
-                            <button
-                                onClick={handleDownload}
-                                className="p-3 rounded-2xl glass text-gray-400 hover:text-white transition-all"
-                            >
-                                <Download size={20} />
-                            </button>
-                        </div>
-                    </div>
-                </motion.div>
-
-                <div
-                    className="prose prose-invert max-w-none text-gray-300 text-lg leading-relaxed space-y-6 mb-20"
-                    dangerouslySetInnerHTML={{ __html: blog.content }}
+                    className="h-full bg-brand-primary shadow-[0_0_15px_#6366f1]"
+                    animate={{ width: `${scrollProgress}%` }}
+                    transition={{ type: "spring", stiffness: 100, damping: 20 }}
                 />
+            </div>
 
-                {/* Comments Section */}
-                <section className="glass p-10 rounded-[2rem]">
-                    <h2 className="text-2xl font-black mb-8 flex items-center space-x-3">
-                        <MessageCircle size={24} className="text-brand-primary" />
-                        <span>Discussion <span className="text-gray-500 ml-2">({comments.length})</span></span>
-                    </h2>
+            <div className="pt-12 px-4 max-w-4xl mx-auto">
+                <Link to="/blog" className="flex items-center space-x-2 text-gray-500 hover:text-white transition-colors mb-10 group">
+                    <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
+                    <span className="font-bold">Back to Feed</span>
+                </Link>
 
-                    <form onSubmit={handleComment} className="flex gap-4 mb-10">
-                        <input
-                            value={newComment}
-                            onChange={(e) => setNewComment(e.target.value)}
-                            placeholder="Share your thoughts..."
-                            className="flex-1 glass p-4 rounded-2xl translate-y-0 focus:ring-2 ring-brand-primary/20 outline-none transition-all font-medium"
-                        />
-                        <button type="submit" className="p-4 bg-brand-primary rounded-2xl text-white shadow-lg shadow-indigo-500/20 active:scale-95 transition-all">
-                            <Send size={20} />
-                        </button>
-                    </form>
+                <article id="blog-article" className="bg-black">
+                    {blog.image && (
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            className="mb-12 h-[450px] w-full rounded-[2.5rem] overflow-hidden shadow-2xl border border-white/5"
+                        >
+                            <img
+                                src={getSafeImageUrl(blog.image)}
+                                alt={blog.title}
+                                className="w-full h-full object-cover"
+                            />
+                        </motion.div>
+                    )}
+                    <motion.div
+                        initial={{ opacity: 0, y: 30 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="mb-10"
+                    >
+                        <span className="px-4 py-1.5 rounded-full bg-brand-primary/10 border border-brand-primary/20 text-xs font-bold text-brand-primary uppercase tracking-widest mb-6 inline-block">
+                            {blog.category}
+                        </span>
+                        <h1 className="text-4xl md:text-6xl font-black mb-8 leading-[1.1] tracking-tighter">
+                            {blog.title}
+                        </h1>
 
-                    <div className="space-y-6">
-                        {comments.map((comment) => (
-                            <div key={comment._id} className="p-6 bg-white/5 rounded-2xl border border-white/5">
-                                <div className="flex items-center space-x-3 mb-3">
-                                    <div className="w-8 h-8 rounded-lg bg-gray-700 flex items-center justify-center text-xs font-bold uppercase">
-                                        {comment.user?.name[0]}
-                                    </div>
-                                    <p className="font-bold text-sm">{comment.user?.name}</p>
-                                    <span className="text-gray-500 text-xs">• {new Date(comment.createdAt).toLocaleDateString()}</span>
+                        <div className="flex items-center justify-between border-y border-white/5 py-6">
+                            <div className="flex items-center space-x-4">
+                                <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-brand-primary to-brand-secondary flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-indigo-500/20">
+                                    {blog.userId?.name?.[0]}
                                 </div>
-                                <p className="text-gray-400 leading-relaxed">{comment.text}</p>
+                                <div>
+                                    <p className="font-bold text-lg">{blog.userId?.name}</p>
+                                    <div className="flex items-center space-x-3 text-sm text-gray-500">
+                                        <div className="flex items-center space-x-1">
+                                            <Calendar size={14} />
+                                            <span>{new Date(blog.createdAt).toLocaleDateString()}</span>
+                                        </div>
+                                        <span>•</span>
+                                        <span>{Math.ceil((blog.content?.split(' ').length || 0) / 200)} min read</span>
+                                    </div>
+                                </div>
                             </div>
-                        ))}
-                    </div>
-                </section>
-            </article>
+
+                            <div className="flex items-center space-x-4">
+                                <button
+                                    onClick={handleLike}
+                                    className={`flex items-center space-x-2 px-6 py-2.5 rounded-2xl transition-all font-bold ${isLiked ? 'bg-red-500/10 text-red-500 border border-red-500/20' : 'glass text-gray-400 hover:text-white'}`}
+                                >
+                                    <Heart size={18} fill={isLiked ? "currentColor" : "none"} />
+                                    <span>{blog.likes?.length || 0}</span>
+                                </button>
+                                <button
+                                    onClick={handleSave}
+                                    className={`p-3 rounded-2xl transition-all ${isSaved ? 'bg-brand-primary/10 text-brand-primary border border-brand-primary/20' : 'glass text-gray-400 hover:text-white'}`}
+                                >
+                                    <Bookmark size={20} fill={isSaved ? "currentColor" : "none"} />
+                                </button>
+                                <button
+                                    onClick={handleShare}
+                                    className="p-3 rounded-2xl glass text-gray-400 hover:text-white transition-all"
+                                >
+                                    <Share2 size={20} />
+                                </button>
+                                <button
+                                    onClick={handleDownload}
+                                    className="p-3 rounded-2xl glass text-gray-400 hover:text-white transition-all"
+                                >
+                                    <Download size={20} />
+                                </button>
+                            </div>
+                        </div>
+                    </motion.div>
+
+                    <div
+                        className="prose prose-invert max-w-none text-gray-300 text-lg leading-relaxed space-y-6 mb-20"
+                        dangerouslySetInnerHTML={{ __html: blog.content }}
+                    />
+
+                    {/* Comments Section */}
+                    <section className="glass p-10 rounded-[2rem]">
+                        <h2 className="text-2xl font-black mb-8 flex items-center space-x-3">
+                            <MessageCircle size={24} className="text-brand-primary" />
+                            <span>Discussion <span className="text-gray-500 ml-2">({comments.length})</span></span>
+                        </h2>
+
+                        <form onSubmit={handleComment} className="flex gap-4 mb-10">
+                            <input
+                                value={newComment}
+                                onChange={(e) => setNewComment(e.target.value)}
+                                placeholder="Share your thoughts..."
+                                className="flex-1 glass p-4 rounded-2xl translate-y-0 focus:ring-2 ring-brand-primary/20 outline-none transition-all font-medium"
+                            />
+                            <button type="submit" className="p-4 bg-brand-primary rounded-2xl text-white shadow-lg shadow-indigo-500/20 active:scale-95 transition-all">
+                                <Send size={20} />
+                            </button>
+                        </form>
+
+                        <div className="space-y-6">
+                            {comments.map((comment) => (
+                                <div key={comment._id} className="p-6 bg-white/5 rounded-2xl border border-white/5">
+                                    <div className="flex items-center space-x-3 mb-3">
+                                        <div className="w-8 h-8 rounded-lg bg-gray-700 flex items-center justify-center text-xs font-bold uppercase">
+                                            {comment.user?.name?.[0]}
+                                        </div>
+                                        <p className="font-bold text-sm">{comment.user?.name}</p>
+                                        <span className="text-gray-500 text-xs">• {new Date(comment.createdAt).toLocaleDateString()}</span>
+                                    </div>
+                                    <p className="text-gray-400 leading-relaxed mb-4">{comment.text}</p>
+                                    
+                                    <div className="flex items-center gap-4">
+                                        <button 
+                                            onClick={() => setReplyTo(replyTo === comment._id ? null : comment._id)}
+                                            className="text-xs font-bold text-brand-primary hover:underline transition-all"
+                                        >
+                                            Reply
+                                        </button>
+                                    </div>
+
+                                    {replyTo === comment._id && (
+                                        <div className="mt-4 flex gap-3 animate-in slide-in-from-top-2 duration-300">
+                                            <input 
+                                                value={replyText}
+                                                onChange={(e) => setReplyText(e.target.value)}
+                                                placeholder="Write a reply..."
+                                                className="flex-1 glass p-3 rounded-xl text-sm outline-none focus:ring-2 ring-brand-primary/20"
+                                            />
+                                            <button 
+                                                onClick={() => handleReply(comment._id)}
+                                                className="px-4 py-2 bg-brand-primary rounded-xl text-white text-sm font-bold active:scale-95 transition-all"
+                                            >
+                                                Post
+                                            </button>
+                                        </div>
+                                    )}
+
+                                    {comment.replies?.length > 0 && (
+                                        <div className="mt-6 ml-8 space-y-4 border-l-2 border-white/5 pl-6">
+                                            {comment.replies.map((reply, idx) => (
+                                                <div key={idx} className="bg-white/[0.02] p-4 rounded-xl">
+                                                    <div className="flex items-center space-x-2 mb-2">
+                                                        <div className="w-6 h-6 rounded-md bg-white/10 flex items-center justify-center text-[10px] font-bold uppercase">
+                                                            {reply.user?.name?.[0]}
+                                                        </div>
+                                                        <p className="font-bold text-xs">{reply.user?.name}</p>
+                                                        <span className="text-gray-500 text-[10px]">• {new Date(reply.createdAt).toLocaleDateString()}</span>
+                                                    </div>
+                                                    <p className="text-gray-400 text-sm">{reply.text}</p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                </article>
+            </div>
         </main>
     );
 };

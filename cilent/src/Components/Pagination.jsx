@@ -1,5 +1,4 @@
-import React from 'react';
-
+// eslint-disable-next-line react/prop-types
 const Pagination = ({ currentPage, totalPages, onPageChange }) => {
     if (totalPages <= 1) return null;
 

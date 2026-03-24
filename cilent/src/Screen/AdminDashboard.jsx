@@ -1,8 +1,13 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import { LayoutDashboard, FileText, Users, MessageSquare, Plus, Trash2, Edit3, TrendingUp, Eye, Heart, ShieldAlert, ShieldCheck, Tag } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
+import {
+    LayoutDashboard, FileText, Users, MessageCircle, Tag,
+    Trash2, Plus, TrendingUp,
+    Eye, Heart, Edit3, ShieldCheck, ShieldAlert
+} from 'lucide-react';
+import api from '../utils/api';
+import Skeleton from '../Component/Skeleton';
 
 const AdminDashboard = () => {
     const [blogs, setBlogs] = useState([]);
@@ -10,6 +15,7 @@ const AdminDashboard = () => {
     const [comments, setComments] = useState([]);
     const [categories, setCategories] = useState([]);
     const [stats, setStats] = useState(null);
+    const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('posts');
     const token = useSelector(state => state.user.token);
     const navigate = useNavigate();
@@ -17,26 +23,28 @@ const AdminDashboard = () => {
     const fetchData = async () => {
         try {
             const [statsRes, blogsRes] = await Promise.all([
-                axios.get('http://localhost:5000/api/admin/analytics', { headers: { 'auth-token': token } }),
-                axios.get('http://localhost:5000/api/blog')
+                api.get(`/admin/analytics`),
+                api.get(`/blog`)
             ]);
             setStats(statsRes.data.data);
             setBlogs(blogsRes.data.data);
 
             if (activeTab === 'users') {
-                const usersRes = await axios.get('http://localhost:5000/api/admin/users', { headers: { 'auth-token': token } });
+                const usersRes = await api.get(`/admin/users`);
                 setUsers(usersRes.data.data);
             }
             if (activeTab === 'comments') {
-                const commRes = await axios.get('http://localhost:5000/api/admin/comments', { headers: { 'auth-token': token } });
+                const commRes = await api.get(`/admin/comments`);
                 setComments(commRes.data.data);
             }
             if (activeTab === 'categories') {
-                const catRes = await axios.get('http://localhost:5000/api/admin/categories', { headers: { 'auth-token': token } });
+                const catRes = await api.get(`/admin/categories`);
                 setCategories(catRes.data.data);
             }
         } catch (error) {
             console.error(error);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -46,25 +54,25 @@ const AdminDashboard = () => {
 
     const handleDeleteBlog = async (id) => {
         if (!window.confirm("Delete this post?")) return;
-        await axios.delete(`http://localhost:5000/api/blog/${id}`, { headers: { 'auth-token': token } });
+        await api.delete(`/blog/${id}`);
         fetchData();
     };
 
     const handleDeleteUser = async (id) => {
         if (!window.confirm("Delete this user?")) return;
-        await axios.delete(`http://localhost:5000/api/admin/users/${id}`, { headers: { 'auth-token': token } });
+        await api.delete(`/admin/users/${id}`);
         fetchData();
     };
 
     const handleDeleteComment = async (id) => {
         if (!window.confirm("Delete this comment?")) return;
-        await axios.delete(`http://localhost:5000/api/admin/comments/${id}`, { headers: { 'auth-token': token } });
+        await api.delete(`/admin/comments/${id}`);
         fetchData();
     };
 
     const handleToggleBlock = async (id) => {
         try {
-            await axios.put(`http://localhost:5000/api/admin/users/${id}/block`, {}, { headers: { 'auth-token': token } });
+            await api.put(`/admin/users/${id}/block`);
             fetchData();
         } catch (error) {
             alert(error.response?.data?.message || "Failed to update user status");
@@ -75,16 +83,16 @@ const AdminDashboard = () => {
         const name = prompt("Enter category name:");
         if (!name) return;
         try {
-            await axios.post('http://localhost:5000/api/admin/categories', { name }, { headers: { 'auth-token': token } });
+            await api.post(`/admin/categories`, { name });
             fetchData();
-        } catch (error) {
+        } catch {
             alert("Failed to add category");
         }
     };
 
     const handleDeleteCategory = async (id) => {
         if (!window.confirm("Delete category?")) return;
-        await axios.delete(`http://localhost:5000/api/admin/categories/${id}`, { headers: { 'auth-token': token } });
+        await api.delete(`/admin/categories/${id}`);
         fetchData();
     };
 
@@ -118,7 +126,7 @@ const AdminDashboard = () => {
                         onClick={() => setActiveTab('comments')}
                         className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${activeTab === 'comments' ? 'bg-brand-primary text-white' : 'text-gray-400 hover:bg-white/5'}`}
                     >
-                        <MessageSquare size={20} />
+                        <MessageCircle size={20} />
                         <span className="font-semibold">Comments</span>
                     </button>
                     <button
@@ -160,7 +168,15 @@ const AdminDashboard = () => {
 
                 {/* Stats Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-                    {statsCards.map((card, i) => (
+                    {loading ? (
+                        [1, 2, 3, 4].map(i => (
+                            <div key={i} className="glass p-6 rounded-3xl">
+                                <Skeleton className="h-10 w-10 rounded-2xl mb-4" />
+                                <Skeleton className="h-4 w-20 mb-2" />
+                                <Skeleton className="h-8 w-12" />
+                            </div>
+                        ))
+                    ) : statsCards.map((card, i) => (
                         <div key={i} className="glass p-6 rounded-3xl">
                             <div className="flex items-center justify-between mb-4">
                                 <div className="p-3 bg-white/5 rounded-2xl">

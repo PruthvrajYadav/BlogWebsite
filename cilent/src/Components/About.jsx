@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import { useRef } from 'react';
 import { gsap } from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -17,7 +17,6 @@ const About = () => {
                 start: "top 80%",
             },
             x: -100,
-            opacity: 0,
             duration: 1.5,
             ease: "power4.out"
         });
@@ -28,7 +27,6 @@ const About = () => {
                 start: "top 80%",
             },
             x: 100,
-            opacity: 0,
             duration: 1.2,
             stagger: 0.2,
             ease: "power4.out",
@@ -76,7 +74,7 @@ const About = () => {
                             LuminaBlog was born from a simple realization: the internet needed a sanctuary for purity in expression. We believe that great ideas deserve a stage that is as elegant as the thoughts themselves.
                         </p>
                         <p>
-                            Our platform is more than just a MERN stack application; it's a testament to the power of minimalist design and high-performance engineering. Every line of code and every pixel is optimized to ensure your voice is heard clearly.
+                            Our platform is more than just a MERN stack application; it&apos;s a testament to the power of minimalist design and high-performance engineering. Every line of code and every pixel is optimized to ensure your voice is heard clearly.
                         </p>
                     </div>
 

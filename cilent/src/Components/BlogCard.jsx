@@ -1,9 +1,11 @@
-import React, { useRef } from 'react';
+import { useRef } from 'react';
 import { gsap } from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { Heart, MessageCircle, ArrowUpRight, Clock } from 'lucide-react';
+/* eslint-disable react/prop-types */
 import { Link } from 'react-router-dom';
+import { getSafeImageUrl } from '../config';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -33,7 +35,7 @@ const BlogCard = ({ blog }) => {
             <Link to={`/blog/${blog._id}`} className="block relative aspect-[16/10] overflow-hidden">
                 <img
                     ref={imageRef}
-                    src={blog.image || 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?q=80&w=2070&auto=format&fit=crop'}
+                    src={getSafeImageUrl(blog.image) || 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?q=80&w=2070&auto=format&fit=crop'}
                     alt={blog.title}
                     className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                 />
