@@ -1,5 +1,4 @@
-import React from 'react';
-
+/* eslint-disable react/prop-types */
 const Skeleton = ({ className }) => {
   return (
     <div className={`animate-pulse bg-white/5 rounded-xl ${className}`}></div>

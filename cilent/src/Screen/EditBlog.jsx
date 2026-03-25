@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Upload, Loader2, Image as ImageIcon } from 'lucide-react';
 import ReactQuill from 'react-quill';
@@ -18,7 +17,7 @@ const EditBlog = () => {
     const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(true);
     const [uploading, setUploading] = useState(false);
-    const { token } = useSelector(state => state.user);
+    
     const navigate = useNavigate();
 
     useEffect(() => {

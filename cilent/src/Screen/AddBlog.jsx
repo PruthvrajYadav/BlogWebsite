@@ -16,7 +16,7 @@ const AddBlog = () => {
     const [tags, setTags] = useState('');
     const [categories, setCategories] = useState([]);
     const [uploading, setUploading] = useState(false);
-    const { data: user, token } = useSelector(state => state.user);
+    const { data: user } = useSelector(state => state.user);
     const navigate = useNavigate();
 
     useEffect(() => {
