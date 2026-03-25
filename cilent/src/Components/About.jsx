@@ -84,16 +84,49 @@ const About = () => {
                                 <span className="stat-counter" data-target="99.9">0</span>
                                 %
                             </p>
-                            <p className="text-gray-500 text-sm font-bold uppercase tracking-widest">Uptime Glory</p>
+                            <p className="text-zinc-500 text-sm font-bold uppercase tracking-widest">Uptime Glory</p>
                         </div>
                         <div>
                             <p className="text-3xl font-black text-white flex items-baseline">
                                 <span className="stat-counter" data-target="10">0</span>
                                 ms
                             </p>
-                            <p className="text-gray-500 text-sm font-bold uppercase tracking-widest">Response Time</p>
+                            <p className="text-zinc-500 text-sm font-bold uppercase tracking-widest">Response Time</p>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            {/* Values Section */}
+            <div className="mt-32 max-w-7xl mx-auto border-t border-white/5 pt-32">
+                <div className="text-center mb-20">
+                    <h2 className="text-3xl md:text-4xl font-black mb-4 tracking-tighter">Our Core <span className="gradient-text">Values</span></h2>
+                    <p className="text-zinc-500 font-medium text-sm tracking-widest uppercase">The pillars of our digital sanctuary</p>
+                </div>
+
+                <div className="grid md:grid-cols-3 gap-12">
+                    {[
+                        { title: "Uncompromising Quality", desc: "We believe every pixel and every word matters. Excellence isn't an act, it's a habit." },
+                        { title: "Radical Transparency", desc: "Openness is our default state. We build in public and grow with our community." },
+                        { title: "Human Centric", desc: "Technology should serve expression, not suppress it. We design for the storyteller." }
+                    ].map((v, i) => (
+                        <div key={i} className="glass p-10 rounded-[2.5rem] border border-white/5 space-y-4 hover:border-brand-primary/30 transition-all duration-500">
+                            <h3 className="text-xl font-bold italic tracking-tight">{v.title}</h3>
+                            <p className="text-zinc-400 font-medium leading-relaxed">{v.desc}</p>
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+            {/* Join Us Section */}
+            <div className="mt-32 max-w-5xl mx-auto glass p-16 rounded-[4rem] border border-white/5 text-center relative overflow-hidden group">
+                <div className="absolute inset-0 bg-brand-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+                <div className="relative z-10 space-y-8">
+                    <h2 className="text-4xl md:text-5xl font-black tracking-tighter">Ready to Scale Your <br /><span className="gradient-text">Narrative?</span></h2>
+                    <p className="text-zinc-400 font-medium text-lg max-w-2xl mx-auto">Join a community of designers, engineers, and visionaries who are redefining digital publishing.</p>
+                    <button className="btn-modern px-12 py-5 inline-flex items-center space-x-3 text-lg">
+                        <span>Start Your Journey</span>
+                    </button>
                 </div>
             </div>
         </section>

@@ -49,6 +49,15 @@ const Navbar = () => {
                         <NavLink to="/blog" className={({ isActive }) => `text-sm font-bold tracking-wide transition-all hover:text-brand-primary ${isActive ? 'text-brand-primary' : 'text-gray-400'}`}>
                             Feed
                         </NavLink>
+                        <NavLink to="/categories" className={({ isActive }) => `text-sm font-bold tracking-wide transition-all hover:text-brand-primary ${isActive ? 'text-brand-primary' : 'text-gray-400'}`}>
+                            Topics
+                        </NavLink>
+                        <NavLink to="/about" className={({ isActive }) => `text-sm font-bold tracking-wide transition-all hover:text-brand-primary ${isActive ? 'text-brand-primary' : 'text-gray-400'}`}>
+                            About
+                        </NavLink>
+                        <NavLink to="/contact" className={({ isActive }) => `text-sm font-bold tracking-wide transition-all hover:text-brand-primary ${isActive ? 'text-brand-primary' : 'text-gray-400'}`}>
+                            Contact
+                        </NavLink>
                         {user && (
                             <NavLink to="/add-blog" className={({ isActive }) => `text-sm font-bold tracking-wide transition-all hover:text-brand-primary ${isActive ? 'text-brand-primary' : 'text-gray-400'}`}>
                                 Create

@@ -5,6 +5,7 @@ import Home from './Screen/Home'
 import About from './Screen/About'
 import Blog from './Screen/Blog'
 import Contact from './Screen/Contact'
+import Categories from './Screen/Categories'
 import SingleBlog from './Screen/SingleBlog'
 import AddBlog from './Screen/AddBlog'
 import AdminDashboard from './Screen/AdminDashboard'
@@ -32,6 +33,7 @@ function App() {
                 <Route path='/about' element={<PageLayout><About /></PageLayout>} />
                 <Route path='/blog' element={<PageLayout><Blog /></PageLayout>} />
                 <Route path='/contact' element={<PageLayout><Contact /></PageLayout>} />
+                <Route path='/categories' element={<PageLayout><Categories /></PageLayout>} />
                 <Route path='/blog/:id' element={<PageLayout><SingleBlog /></PageLayout>} />
                 <Route path='/login' element={<PageLayout><Login /></PageLayout>} />
                 <Route path='/register' element={<PageLayout><Register /></PageLayout>} />

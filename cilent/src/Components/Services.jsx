@@ -77,25 +77,29 @@ const Services = () => {
     }, { scope: container });
 
     return (
-        <section ref={container} className="py-24 px-6 lg:px-8 bg-black/20 overflow-hidden">
-            <div className="max-w-7xl mx-auto">
-                <div className="text-center mb-20">
-                    <h2 className="text-4xl font-black mb-4 tracking-tighter">Engineered for <span className="gradient-text">Excellence</span></h2>
-                    <p className="text-gray-500 font-medium max-w-xl mx-auto">Powerful features wrapped in a minimalist core, giving you everything you need to scale your narrative.</p>
+        <section ref={container} className="py-20 px-6 lg:px-12 bg-zinc-950 text-white overflow-hidden">
+            <div className="max-w-screen-2xl mx-auto">
+                <div className="text-center mb-16">
+                    <h2 className="text-4xl md:text-5xl font-black mb-6 tracking-tighter">
+                        Engineered for <span className="gradient-text">Excellence</span>
+                    </h2>
+                    <p className="text-zinc-400 font-medium max-w-xl mx-auto text-sm md:text-base leading-relaxed">
+                        A minimalist core built with high-performance engineering, providing the essential tools to scale your narrative with precision and style.
+                    </p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
                     {features.map((f, i) => (
                         <div
                             key={i}
                             ref={el => cardsRef.current[i] = el}
-                            className="glass p-10 rounded-[2.5rem] group hover:border-brand-primary/30 transition-all duration-500"
+                            className="glass p-8 rounded-[2rem] group hover:border-brand-primary/30 transition-all duration-500 flex flex-col items-start"
                         >
-                            <div className="w-14 h-14 bg-white/5 rounded-2xl flex items-center justify-center mb-8 border border-white/5 group-hover:scale-110 group-hover:bg-brand-primary/10 transition-all">
+                            <div className="w-12 h-12 bg-white/5 rounded-xl flex items-center justify-center mb-6 border border-white/5 group-hover:scale-110 group-hover:bg-brand-primary/10 transition-all">
                                 {f.icon}
                             </div>
-                            <h3 className="text-xl font-bold mb-4">{f.title}</h3>
-                            <p className="text-gray-500 leading-relaxed font-medium">
+                            <h3 className="text-lg font-bold mb-3 group-hover:text-brand-accent transition-colors">{f.title}</h3>
+                            <p className="text-zinc-500 dark:text-zinc-400 text-xs md:text-sm leading-relaxed font-medium">
                                 {f.desc}
                             </p>
                         </div>

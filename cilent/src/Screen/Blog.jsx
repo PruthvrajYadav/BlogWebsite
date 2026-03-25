@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
+import { useSearchParams } from 'react-router-dom';
 import BlogCard from '../Components/BlogCard';
 import Pagination from '../Components/Pagination';
 import { Search, Filter, Loader2 } from 'lucide-react';
@@ -8,10 +9,11 @@ import { useGSAP } from '@gsap/react';
 import { API_BASE_URL } from '../config';
 
 const Blog = () => {
+    const [searchParams] = useSearchParams();
     const [blogs, setBlogs] = useState([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
-    const [category, setCategory] = useState('All');
+    const [category, setCategory] = useState(searchParams.get('category') || 'All');
     const [categories, setCategories] = useState(['All']);
     const [page, setPage] = useState(1);
     const [pagination, setPagination] = useState({ totalPages: 1 });
@@ -71,8 +73,10 @@ const Blog = () => {
     }, []);
 
     useEffect(() => {
+        const urlCat = searchParams.get('category') || 'All';
+        setCategory(urlCat);
         setPage(1); // Reset to first page on search or category change
-    }, [search, category]);
+    }, [search, searchParams]);
 
     useEffect(() => {
         const delaySearch = setTimeout(fetchBlogs, 300);
