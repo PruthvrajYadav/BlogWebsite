@@ -2,6 +2,8 @@ import { useRef } from 'react';
 import { gsap } from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { Link } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -9,6 +11,7 @@ const About = () => {
     const containerRef = useRef();
     const imageRef = useRef();
     const contentRef = useRef();
+    const { token } = useSelector(state => state.user);
 
     useGSAP(() => {
         gsap.from(imageRef.current, {
@@ -124,9 +127,12 @@ const About = () => {
                 <div className="relative z-10 space-y-8">
                     <h2 className="text-4xl md:text-5xl font-black tracking-tighter">Ready to Scale Your <br /><span className="gradient-text">Narrative?</span></h2>
                     <p className="text-zinc-400 font-medium text-lg max-w-2xl mx-auto">Join a community of designers, engineers, and visionaries who are redefining digital publishing.</p>
-                    <button className="btn-modern px-12 py-5 inline-flex items-center space-x-3 text-lg">
+                    <Link 
+                        to={token ? "/add-blog" : "/register"} 
+                        className="btn-modern px-12 py-5 inline-flex items-center justify-center space-x-3 text-lg min-w-[200px]"
+                    >
                         <span>Start Your Journey</span>
-                    </button>
+                    </Link>
                 </div>
             </div>
         </section>
