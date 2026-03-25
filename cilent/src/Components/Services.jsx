@@ -11,21 +11,6 @@ const Services = () => {
     const container = useRef();
     const cardsRef = useRef([]);
 
-    useGSAP(() => {
-        gsap.from(cardsRef.current, {
-            scrollTrigger: {
-                trigger: container.current,
-                start: "top 80%",
-            },
-            y: 30,
-            opacity: 0,
-            scale: 0.9,
-            duration: 0.8,
-            stagger: 0.15,
-            ease: "back.out(1.7)"
-        });
-    }, { scope: container });
-
     const features = [
         {
             icon: <Zap size={24} className="text-yellow-400" />,
@@ -56,8 +41,40 @@ const Services = () => {
             icon: <MessageSquare size={24} className="text-pink-400" />,
             title: "Discussion Hub",
             desc: "Engaging comment system to foster community conversations."
+        },
+        {
+            icon: <Zap size={24} className="text-orange-400" />,
+            title: "SEO Optimized",
+            desc: "Automatically generated meta tags and clean URL structures for search engines."
+        },
+        {
+            icon: <Feather size={24} className="text-cyan-400" />,
+            title: "Responsive Design",
+            desc: "Flawless experience across desktop, tablet, and mobile devices."
+        },
+        {
+            icon: <Shield size={24} className="text-rose-400" />,
+            title: "Image Optimization",
+            desc: "Automatic resizing and Cloudinary integration for lightning-fast media."
         }
     ];
+
+    useGSAP(() => {
+        // Use a more robust trigger and ensure elements are visible if scrollTrigger fails
+        gsap.from(cardsRef.current, {
+            scrollTrigger: {
+                trigger: container.current,
+                start: "top center+=200",
+                toggleActions: "play none none none"
+            },
+            y: 50,
+            opacity: 0,
+            scale: 0.95,
+            duration: 1,
+            stagger: 0.1,
+            ease: "expo.out"
+        });
+    }, { scope: container });
 
     return (
         <section ref={container} className="py-24 px-6 lg:px-8 bg-black/20 overflow-hidden">
