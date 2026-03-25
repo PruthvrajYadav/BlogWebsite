@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { Mail, Bookmark, Edit2, X, Camera, Save, Loader2, User } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Mail, Bookmark, Edit2, X, Camera, Save, Loader2, User, Edit3, Trash2, FileText } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { updateUserInfo } from '../Slice/userSlice';
 import { getSafeImageUrl } from '../config';
 import BlogCard from '../Components/BlogCard';
@@ -12,19 +14,9 @@ const Profile = () => {
     const [profileData, setProfileData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [isEditing, setIsEditing] = useState(false);
-
-    // Edit Form State
-    const [formData, setFormData] = useState({
-        name: '',
-        email: '',
-        bio: '',
-        profilePic: '',
-        socialLinks: {
-            twitter: '',
-            linkedin: '',
-            github: ''
-        }
-    });
+    const [activeTab, setActiveTab] = useState('published');
+    const [userBlogs, setUserBlogs] = useState([]);
+    const navigate = useNavigate();
 
     const fetchProfile = async () => {
         try {
@@ -44,9 +36,46 @@ const Profile = () => {
         }
     };
 
+    // Edit Form State
+    const [formData, setFormData] = useState({
+        name: '',
+        email: '',
+        bio: '',
+        profilePic: '',
+        socialLinks: {
+            twitter: '',
+            linkedin: '',
+            github: ''
+        }
+    });
+
+    const fetchUserBlogs = async () => {
+        try {
+            const res = await api.get(`/blog?authorId=${currentUser._id}`);
+            setUserBlogs(res.data.data);
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
     useEffect(() => {
-        if (token) fetchProfile();
+        if (token) {
+            fetchProfile();
+            fetchUserBlogs();
+        }
     }, [token]);
+
+    const handleDeleteBlog = async (id) => {
+        if (!window.confirm("Are you sure you want to delete this story? This narrative will be lost forever.")) return;
+        try {
+            await api.delete(`/blog/${id}`);
+            fetchUserBlogs();
+            alert("Story deleted successfully.");
+        } catch (error) {
+            console.error(error);
+            alert("Failed to delete story.");
+        }
+    };
 
     const handleUpdate = async (e) => {
         e.preventDefault();
@@ -137,22 +166,79 @@ const Profile = () => {
                 </div>
             </div>
 
-            {/* Saved Blogs Section */}
-            <div>
-                <h2 className="text-3xl font-bold mb-8 flex items-center gap-3">
-                    <Bookmark className="text-brand-primary" />
-                    <span>Saved Stories</span>
-                </h2>
+            {/* Content Tabs */}
+            <div className="flex items-center space-x-8 mb-12 border-b border-white/5">
+                {[
+                    { id: 'published', label: 'My Stories', icon: <FileText size={18} /> },
+                    { id: 'saved', label: 'Saved Collection', icon: <Bookmark size={18} /> }
+                ].map(tab => (
+                    <button
+                        key={tab.id}
+                        onClick={() => setActiveTab(tab.id)}
+                        className={`flex items-center space-x-2 pb-4 text-sm font-bold uppercase tracking-widest transition-all relative ${activeTab === tab.id ? 'text-brand-primary' : 'text-gray-500 hover:text-white'}`}
+                    >
+                        {tab.icon}
+                        <span>{tab.label}</span>
+                        {activeTab === tab.id && (
+                            <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-brand-primary" />
+                        )}
+                    </button>
+                ))}
+            </div>
 
-                {profileData?.savedBlogs?.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                        {profileData.savedBlogs.map(blog => (
-                            <BlogCard key={blog._id} blog={blog} />
-                        ))}
+            {/* Dynamic Content Section */}
+            <div className="min-h-[400px]">
+                {activeTab === 'published' ? (
+                    <div>
+                        {userBlogs.length > 0 ? (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                                {userBlogs.map(blog => (
+                                    <BlogCard 
+                                        key={blog._id} 
+                                        blog={blog} 
+                                        actions={
+                                            <>
+                                                <button 
+                                                    onClick={() => navigate(`/edit-blog/${blog._id}`)}
+                                                    className="p-2.5 rounded-xl bg-white/5 text-gray-400 hover:text-brand-primary hover:bg-brand-primary/10 transition-all border border-white/5"
+                                                    title="Edit Story"
+                                                >
+                                                    <Edit3 size={16} />
+                                                </button>
+                                                <button 
+                                                    onClick={() => handleDeleteBlog(blog._id)}
+                                                    className="p-2.5 rounded-xl bg-white/5 text-gray-400 hover:text-red-500 hover:bg-red-500/10 transition-all border border-white/5"
+                                                    title="Delete Story"
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            </>
+                                        }
+                                    />
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="text-center py-24 glass rounded-[3rem] border border-white/5">
+                                <FileText size={48} className="mx-auto text-gray-700 mb-4" />
+                                <p className="text-gray-400 text-lg font-medium mb-6">You haven&apos;t published any narratives yet.</p>
+                                <button onClick={() => navigate('/add-blog')} className="btn-modern px-8 py-3">Start Writing</button>
+                            </div>
+                        )}
                     </div>
                 ) : (
-                    <div className="text-center py-20 glass rounded-3xl">
-                        <p className="text-gray-400 text-lg">You haven&apos;t saved any stories yet.</p>
+                    <div>
+                        {profileData?.savedBlogs?.length > 0 ? (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                                {profileData.savedBlogs.map(blog => (
+                                    <BlogCard key={blog._id} blog={blog} />
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="text-center py-24 glass rounded-[3rem] border border-white/5">
+                                <Bookmark size={48} className="mx-auto text-gray-700 mb-4" />
+                                <p className="text-gray-400 text-lg font-medium">Your reading list is currently empty.</p>
+                            </div>
+                        )}
                     </div>
                 )}
             </div>

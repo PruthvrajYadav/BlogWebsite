@@ -34,7 +34,7 @@ const Home = () => {
             <Hero />
 
             {/* Recent Stories & Sidebar Section */}
-            <section className="py-24 px-6 lg:px-12 max-w-screen-2xl mx-auto">
+            <section className="py-16 px-6 lg:px-12 max-w-screen-2xl mx-auto">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
                     
                     {/* Main Content: Recent Stories (8 cols) */}

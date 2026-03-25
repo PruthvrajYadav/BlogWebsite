@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import { Upload, Loader2, Image as ImageIcon } from 'lucide-react';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
@@ -17,7 +18,7 @@ const EditBlog = () => {
     const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(true);
     const [uploading, setUploading] = useState(false);
-    
+    const { data: user } = useSelector(state => state.user);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -48,7 +49,12 @@ const EditBlog = () => {
         try {
             const tagsArray = tags.split(',').map(tag => tag.trim()).filter(tag => tag !== '');
             await api.put(`/blog/${id}`, { title, content, category, image, status, tags: tagsArray });
-            navigate('/admin');
+            alert("Narrative updated!");
+            if (user?.isAdmin) {
+                navigate('/admin');
+            } else {
+                navigate('/profile');
+            }
         } catch (error) {
             console.error(error);
             alert("Failed to update blog");

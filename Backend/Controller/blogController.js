@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const Blog = require("../Model/blog");
 const Comment = require("../Model/comment");
 const Category = require("../Model/category");
@@ -13,7 +14,7 @@ exports.getCategories = async (req, res) => {
 
 exports.getBlogs = async (req, res) => {
     try {
-        const { search, category, status } = req.query;
+        const { search, category, status, authorId } = req.query;
         let query = {};
 
         // Regular users should only see published blogs by default
@@ -32,6 +33,21 @@ exports.getBlogs = async (req, res) => {
         }
         if (category && category !== "All") {
             query.category = category;
+        }
+
+        if (authorId) {
+            if (mongoose.Types.ObjectId.isValid(authorId)) {
+                query.userId = authorId;
+                // When fetching specific author's blogs, show all statuses (Draft/Published)
+                delete query.status; 
+            } else {
+                // If invalid ID provided, return empty results instead of crashing
+                return res.json({
+                    errors: false,
+                    data: [],
+                    pagination: { currentPage: 1, totalPages: 0, totalBlogs: 0, hasNextPage: false }
+                });
+            }
         }
 
         const page = parseInt(req.query.page) || 1;
@@ -180,8 +196,16 @@ exports.createBlog = async (req, res) => {
 
 exports.updateBlog = async (req, res) => {
     try {
-        const blog = await Blog.findByIdAndUpdate(req.params.id, req.body, { new: true });
-        res.json({ errors: false, data: blog });
+        const blog = await Blog.findById(req.params.id);
+        if (!blog) return res.status(404).json({ errors: true, message: "Blog not found" });
+
+        // Check ownership or admin status
+        if (blog.userId.toString() !== req.user._id.toString() && !req.user.isAdmin) {
+            return res.status(403).json({ errors: true, message: "Unauthorized to update this blog" });
+        }
+
+        const updatedBlog = await Blog.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        res.json({ errors: false, data: updatedBlog });
     } catch (error) {
         res.status(500).json({ errors: true, message: error.message });
     }
@@ -189,6 +213,14 @@ exports.updateBlog = async (req, res) => {
 
 exports.deleteBlog = async (req, res) => {
     try {
+        const blog = await Blog.findById(req.params.id);
+        if (!blog) return res.status(404).json({ errors: true, message: "Blog not found" });
+
+        // Check ownership or admin status
+        if (blog.userId.toString() !== req.user._id.toString() && !req.user.isAdmin) {
+            return res.status(403).json({ errors: true, message: "Unauthorized to delete this blog" });
+        }
+
         await Blog.findByIdAndDelete(req.params.id);
         res.json({ errors: false, message: "Blog deleted successfully" });
     } catch (error) {

@@ -77,10 +77,10 @@ const Services = () => {
     }, { scope: container });
 
     return (
-        <section ref={container} className="py-20 px-6 lg:px-12 bg-zinc-950 text-white overflow-hidden">
+        <section ref={container} className="py-16 px-6 lg:px-12 bg-zinc-950 text-white overflow-hidden border-t border-white/5">
             <div className="max-w-screen-2xl mx-auto">
-                <div className="text-center mb-16">
-                    <h2 className="text-4xl md:text-5xl font-black mb-6 tracking-tighter">
+                <div className="text-center mb-12">
+                    <h2 className="text-4xl md:text-5xl font-black mb-6 tracking-tighter text-white">
                         Engineered for <span className="gradient-text">Excellence</span>
                     </h2>
                     <p className="text-zinc-400 font-medium max-w-xl mx-auto text-sm md:text-base leading-relaxed">

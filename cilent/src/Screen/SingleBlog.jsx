@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Calendar, Heart, Bookmark, Share2, Download, MessageCircle, Send } from 'lucide-react';
+import { ArrowLeft, Calendar, Heart, Bookmark, Share2, Download, MessageCircle, Send, Edit3, Trash2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import { updateUserInfo } from '../Slice/userSlice';
@@ -23,6 +24,7 @@ const SingleBlog = () => {
     const [loading, setLoading] = useState(true);
     const { data: user, token } = useSelector(state => state.user);
     const dispatch = useDispatch();
+    const navigate = useNavigate();
 
     useEffect(() => {
         const handleScroll = () => {
@@ -137,6 +139,18 @@ const SingleBlog = () => {
         } catch (error) {
             console.error("PDF generation failed", error);
             alert("PDF generation failed: " + error.message);
+        }
+    };
+
+    const handleDelete = async () => {
+        if (!window.confirm("Are you sure you want to delete this story?")) return;
+        try {
+            await api.delete(`/blog/${id}`);
+            alert("Story deleted successfully.");
+            navigate('/blog');
+        } catch (error) {
+            console.error(error);
+            alert("Failed to delete story.");
         }
     };
 
@@ -255,6 +269,25 @@ const SingleBlog = () => {
                                 >
                                     <Download size={20} />
                                 </button>
+
+                                {(user?._id === blog.userId?._id || user?.isAdmin) && (
+                                    <>
+                                        <button
+                                            onClick={() => navigate(`/edit-blog/${id}`)}
+                                            className="p-3 rounded-2xl bg-brand-primary/10 text-brand-primary border border-brand-primary/20 hover:bg-brand-primary hover:text-white transition-all"
+                                            title="Edit Story"
+                                        >
+                                            <Edit3 size={20} />
+                                        </button>
+                                        <button
+                                            onClick={handleDelete}
+                                            className="p-3 rounded-2xl bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500 hover:text-white transition-all"
+                                            title="Delete Story"
+                                        >
+                                            <Trash2 size={20} />
+                                        </button>
+                                    </>
+                                )}
                             </div>
                         </div>
                     </motion.div>

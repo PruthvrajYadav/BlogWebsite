@@ -1,8 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import {
-    Moon,
-    Sun,
     LayoutDashboard,
     LogOut,
     Ghost,
@@ -16,16 +14,13 @@ import { logout } from '../Slice/userSlice';
 
 const Navbar = () => {
     const [isOpen, setIsOpen] = useState(false);
-    const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
     const { data: user } = useSelector(state => state.user);
     const dispatch = useDispatch();
 
     useEffect(() => {
-        document.documentElement.setAttribute('data-theme', theme);
-        localStorage.setItem('theme', theme);
-    }, [theme]);
-
-    const toggleTheme = () => setTheme(prev => prev === 'light' ? 'dark' : 'light');
+        document.documentElement.setAttribute('data-theme', 'dark');
+        localStorage.setItem('theme', 'dark');
+    }, []);
 
     return (
         <nav className="fixed top-0 left-0 right-0 z-50 glass border-b border-white/5">
@@ -73,13 +68,6 @@ const Navbar = () => {
 
                     {/* Right Side */}
                     <div className="hidden md:flex items-center space-x-6">
-                        <button
-                            onClick={toggleTheme}
-                            className="p-3 rounded-2xl bg-white/5 hover:bg-white/10 transition-all text-gray-400 hover:text-brand-primary"
-                        >
-                            {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
-                        </button>
-
                         {user ? (
                             <div className="flex items-center space-x-4">
                                 <Link to="/profile" className="text-right hover:text-brand-primary transition-colors">

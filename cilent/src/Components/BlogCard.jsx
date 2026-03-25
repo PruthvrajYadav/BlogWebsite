@@ -9,7 +9,7 @@ import { getSafeImageUrl } from '../config';
 
 gsap.registerPlugin(ScrollTrigger);
 
-const BlogCard = ({ blog }) => {
+const BlogCard = ({ blog, actions }) => {
     const cardRef = useRef();
     const imageRef = useRef();
 
@@ -75,13 +75,17 @@ const BlogCard = ({ blog }) => {
                             <span className="text-[11px] font-bold">{blog.commentCount || 0}</span>
                         </button>
                     </div>
+
+                    {actions && <div className="flex items-center space-x-3">{actions}</div>}
                     
-                    <Link 
-                        to={`/blog/${blog._id}`} 
-                        className="p-2 bg-zinc-50 dark:bg-zinc-900 text-zinc-400 group-hover:bg-brand-primary group-hover:text-white transition-all duration-300"
-                    >
-                        <ArrowUpRight size={16} />
-                    </Link>
+                    {!actions && (
+                        <Link 
+                            to={`/blog/${blog._id}`} 
+                            className="p-2 bg-zinc-50 dark:bg-zinc-900 text-zinc-400 group-hover:bg-brand-primary group-hover:text-white transition-all duration-300"
+                        >
+                            <ArrowUpRight size={16} />
+                        </Link>
+                    )}
                 </div>
             </div>
         </div>

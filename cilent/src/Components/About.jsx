@@ -46,7 +46,7 @@ const About = () => {
     }, { scope: containerRef });
 
     return (
-        <section ref={containerRef} className="py-32 px-6 lg:px-8 relative overflow-hidden">
+        <section ref={containerRef} className="py-20 px-6 lg:px-8 relative overflow-hidden">
             <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-16">
                 <div ref={imageRef} className="flex-1 relative">
                     <div className="relative z-10 rounded-[3rem] overflow-hidden shadow-2xl border border-white/5">
@@ -98,7 +98,7 @@ const About = () => {
             </div>
 
             {/* Values Section */}
-            <div className="mt-32 max-w-7xl mx-auto border-t border-white/5 pt-32">
+            <div className="mt-20 max-w-7xl mx-auto border-t border-white/5 pt-20">
                 <div className="text-center mb-20">
                     <h2 className="text-3xl md:text-4xl font-black mb-4 tracking-tighter">Our Core <span className="gradient-text">Values</span></h2>
                     <p className="text-zinc-500 font-medium text-sm tracking-widest uppercase">The pillars of our digital sanctuary</p>
@@ -119,7 +119,7 @@ const About = () => {
             </div>
 
             {/* Join Us Section */}
-            <div className="mt-32 max-w-5xl mx-auto glass p-16 rounded-[4rem] border border-white/5 text-center relative overflow-hidden group">
+            <div className="mt-20 max-w-5xl mx-auto glass p-12 md:p-16 rounded-[3rem] md:rounded-[4rem] border border-white/5 text-center relative overflow-hidden group">
                 <div className="absolute inset-0 bg-brand-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
                 <div className="relative z-10 space-y-8">
                     <h2 className="text-4xl md:text-5xl font-black tracking-tighter">Ready to Scale Your <br /><span className="gradient-text">Narrative?</span></h2>
