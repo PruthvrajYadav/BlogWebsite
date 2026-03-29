@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useSelector } from 'react-redux';
+
+
 import { useNavigate } from 'react-router-dom';
 import {
     LayoutDashboard, FileText, Users, MessageCircle, Tag,
@@ -18,8 +19,8 @@ const AdminDashboard = () => {
     const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('posts');
-    const token = useSelector(state => state.user.token);
     const navigate = useNavigate();
+
 
     const fetchData = useCallback(async () => {
         try {
