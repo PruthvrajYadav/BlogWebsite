@@ -1,5 +1,5 @@
-import React from 'react';
 import { Settings, Wrench } from 'lucide-react';
+
 
 const Maintenance = () => {
     return (
@@ -16,8 +16,9 @@ const Maintenance = () => {
             </h1>
             
             <p className="text-slate-400 max-w-md text-lg font-medium leading-relaxed">
-                CodeStories is currently undergoing scheduled upgrades to serve you better. We'll be back online shortly!
+                CodeStories is currently undergoing scheduled upgrades to serve you better. We&apos;ll be back online shortly!
             </p>
+
             
             <div className="mt-12 flex flex-col items-center gap-2">
                 <div className="flex gap-2">

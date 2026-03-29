@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import {
     LayoutDashboard, FileText, Users, MessageCircle, Tag,
-    Trash2, Plus, TrendingUp,
+    Trash2, Plus, TrendingUp, Mail,
     Eye, Heart, Edit3, ShieldCheck, ShieldAlert
 } from 'lucide-react';
 import api from '../utils/api';
@@ -21,7 +21,7 @@ const AdminDashboard = () => {
     const token = useSelector(state => state.user.token);
     const navigate = useNavigate();
 
-    const fetchData = async () => {
+    const fetchData = useCallback(async () => {
         try {
             const [statsRes, blogsRes] = await Promise.all([
                 api.get(`/admin/analytics`),
@@ -51,11 +51,11 @@ const AdminDashboard = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [activeTab]);
 
     useEffect(() => {
         fetchData();
-    }, [token, activeTab]);
+    }, [fetchData]);
 
     const handleDeleteBlog = async (id) => {
         if (!window.confirm("Delete this post?")) return;
@@ -298,7 +298,7 @@ const AdminDashboard = () => {
                                 ))}
                                 {activeTab === 'comments' && comments.map((c) => (
                                     <tr key={c._id} className="hover:bg-white/[0.03] transition-colors group">
-                                        <td className="px-8 py-6 text-zinc-200 font-medium max-w-xs truncate italic">"{c.text}"</td>
+                                        <td className="px-8 py-6 text-zinc-200 font-medium max-w-xs truncate italic">&quot;{c.text}&quot;</td>
                                         <td className="px-8 py-6 font-bold text-brand-primary leading-tight">{c.blog?.title}</td>
                                         <td className="px-8 py-6 text-zinc-500 font-bold">{c.user?.name}</td>
                                         <td className="px-8 py-6 text-right opacity-0 group-hover:opacity-100 transition-opacity">

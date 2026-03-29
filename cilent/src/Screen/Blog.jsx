@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import axios from 'axios';
 import { useSearchParams } from 'react-router-dom';
 import BlogCard from '../Components/BlogCard';
@@ -52,7 +52,7 @@ const Blog = () => {
         }
     };
 
-    const fetchBlogs = async () => {
+    const fetchBlogs = useCallback(async () => {
         try {
             setLoading(true);
             const res = await axios.get(`${API_BASE_URL}/blog?search=${search}&category=${category}&page=${page}&limit=6`);
@@ -66,7 +66,7 @@ const Blog = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [search, category, page]);
 
     useEffect(() => {
         fetchCategories();
@@ -81,7 +81,7 @@ const Blog = () => {
     useEffect(() => {
         const delaySearch = setTimeout(fetchBlogs, 300);
         return () => clearTimeout(delaySearch);
-    }, [search, category, page]);
+    }, [fetchBlogs]);
 
     return (
         <main ref={containerRef} className="pt-32 min-h-screen px-4 max-w-7xl mx-auto pb-20 overflow-hidden">

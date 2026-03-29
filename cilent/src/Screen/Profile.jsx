@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { motion } from 'framer-motion';
-import { Mail, Bookmark, Edit2, X, Camera, Save, Loader2, User, Edit3, Trash2, FileText } from 'lucide-react';
+import { Mail, Bookmark, Edit2, Loader2, User, Edit3, Trash2, FileText } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { updateUserInfo, toggleEditModal } from '../Slice/userSlice';
+import { toggleEditModal } from '../Slice/userSlice';
 import { getSafeImageUrl } from '../config';
 import BlogCard from '../Components/BlogCard';
 import api from '../utils/api';
@@ -20,7 +20,7 @@ const Profile = () => {
     const [userBlogs, setUserBlogs] = useState([]);
     const navigate = useNavigate();
 
-    const fetchProfile = async () => {
+    const fetchProfile = useCallback(async () => {
         try {
             const endpoint = isMyProfile ? `/user/me` : `/user/${id}`;
             const res = await api.get(endpoint);
@@ -30,9 +30,9 @@ const Profile = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [isMyProfile, id]);
 
-    const fetchUserBlogs = async () => {
+    const fetchUserBlogs = useCallback(async () => {
         try {
             const authorId = isMyProfile ? currentUser?._id : id;
             if (!authorId) return;
@@ -41,13 +41,13 @@ const Profile = () => {
         } catch (error) {
             console.error(error);
         }
-    };
+    }, [isMyProfile, currentUser?._id, id]);
 
     useEffect(() => {
         if (isMyProfile && !token) return;
         fetchProfile();
         fetchUserBlogs();
-    }, [id, token]);
+    }, [fetchProfile, fetchUserBlogs, isMyProfile, token]);
 
     const handleDeleteBlog = async (id) => {
         if (!window.confirm("Are you sure you want to delete this story? This narrative will be lost forever.")) return;

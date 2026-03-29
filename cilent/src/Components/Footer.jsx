@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { Ghost, Library, BookOpen, Twitter, Linkedin, Github, Send, Mail, MapPin, Phone } from 'lucide-react';
+import { BookOpen, Twitter, Linkedin, Github, Send } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const Footer = () => {

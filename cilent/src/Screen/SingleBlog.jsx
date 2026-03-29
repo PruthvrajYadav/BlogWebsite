@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { motion } from 'framer-motion';
@@ -47,7 +47,7 @@ const SingleBlog = () => {
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
-    const fetchData = async () => {
+    const fetchData = useCallback(async () => {
         try {
             const [blogRes, commRes] = await Promise.all([
                 api.get(`/blog/${id}`),
@@ -65,11 +65,11 @@ const SingleBlog = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [id, user]);
 
     useEffect(() => {
         fetchData();
-    }, [id, user]);
+    }, [fetchData]);
 
     const handleLike = async () => {
         if (!token) return toast.error("Please login to like");
