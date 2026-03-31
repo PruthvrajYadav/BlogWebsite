@@ -101,6 +101,10 @@ app.get("/health", (req, res) => {
     res.json({ status: "ok", db: mongoose.connection.readyState === 1 ? "connected" : "disconnected" });
 });
 
+// Admin login is PUBLIC - must be BEFORE maintenance middleware
+const adminController = require("./Controller/adminController");
+app.post("/api/admin/login", adminController.adminLogin);
+
 // Primary Guard: Check for Maintenance BEFORE any api routes
 app.use(maintenanceMiddleware);
 
